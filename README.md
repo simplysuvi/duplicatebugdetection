@@ -1,4 +1,4 @@
-# Binary Classification of Bug Reports in Issue Tracking Systems
+# Binary Classification of Bug Reports in Issue Tracking Systems using Machine Learning
 
 Duplicate bug report detection is a crucial task for any large-scale software project since it helps detect and triage redundant issues that occur during its lifecycle. For example, when Microsoft Word crashes several times, one can file multiple bug reports on the same issue using different words or forms of expression. This creates unnecessary load on the developer's end and reduces their efficiency by wasting their valuable time in deciphering similar queries and going through multiple reports filed on the same problem.<br>
 
