@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duplicate Bug Detection</title>
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary-color: #0071e3;
+            --secondary-color: #86868b;
+            --background-color: #f5f5f7;
+            --dark-background: #000000;
+            --text-color: #1d1d1f;
+            --light-text: #f5f5f7;
+            --section-spacing: 100px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 44px;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--light-text);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 44px;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            list-style: none;
+        }
+
+        .nav-links.active {
+            display: flex;
+        }
+
+        .nav-links li {
+            margin: 10px 0;
+        }
+
+        .nav-links a {
+            color: var(--light-text);
+            text-decoration: none;
+            font-size: 16px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .menu-toggle {
+            display: block;
+            color: var(--light-text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .menu-toggle {
+                display: none;
+            }
+
+            .nav-links {
+                display: flex;
+                flex-direction: row;
+                position: static;
+                background-color: transparent;
+                padding: 0;
+            }
+
+            .nav-links li {
+                margin: 0 0 0 30px;
+            }
+
+            .nav-links a {
+                font-size: 14px;
+            }
+        }
+
+        .hero {
+            background-color: var(--dark-background);
+            color: var(--light-text);
+            padding: 180px 0 120px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #0071e3 0%, #00a2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero h2 {
+            font-size: 28px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            max-width: 800px;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+
+        @media (min-width: 768px) {
+            .hero h1 {
+                font-size: 56px;
+            }
+
+            .hero h2 {
+                font-size: 48px;
+            }
+
+            .hero p {
+                font-size: 21px;
+            }
+        }
+
+        section {
+            padding: var(--section-spacing) 0;
+        }
+
+        .section-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--secondary-color);
+        }
+
+        @media (min-width: 768px) {
+            .section-title {
+                font-size: 40px;
+                margin-bottom: 20px;
+            }
+
+            .section-subtitle {
+                font-size: 28px;
+                margin-bottom: 40px;
+            }
+        }
+
+        .overview {
+            background-color: white;
+        }
+
+        .overview-content {
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+        }
+
+        .overview-text p {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .overview-image {
+            text-align: center;
+        }
+
+        @media (min-width: 992px) {
+            .overview-content {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .overview-text {
+                flex: 1;
+            }
+
+            .overview-image {
+                flex: 1;
+            }
+        }
+
+        .overview-image img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .datasets {
+            background-color: var(--background-color);
+        }
+
+        .dataset-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .dataset-card {
+            background-color: white;
+            border-radius: 18px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        @media (min-width: 768px) {
+            .dataset-cards {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .dataset-card {
+                flex: 1;
+            }
+        }
+
+        .dataset-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .dataset-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .dataset-card p {
+            font-size: 16px;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+        }
+
+        .dataset-card .count {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .approach {
+            background-color: white;
+        }
+
+        .approach-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .approach-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            text-align: center;
+        }
+
+        .step-number {
+            background-color: var(--primary-color);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .step-content h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .step-content p {
+            font-size: 18px;
+            color: var(--secondary-color);
+        }
+
+        @media (min-width: 768px) {
+            .approach-step {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 30px;
+                text-align: left;
+            }
+
+            .step-number {
+                flex-shrink: 0;
+            }
+        }
+
+        .results {
+            background-color: var(--background-color);
+        }
+
+        .results-content {
+            margin-top: 50px;
+        }
+
+        .metrics-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 18px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (min-width: 768px) {
+            .metrics-container {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .metric-card {
+                flex: 1;
+            }
+        }
+
+        .metric-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--secondary-color);
+        }
+
+        .metric-card .value {
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .model-comparison {
+            background-color: white;
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .model-comparison h3 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+            display: block;
+        }
+
+        @media (min-width: 992px) {
+            table {
+                display: table;
+            }
+        }
+
+        th,
+        td {
+            padding: 15px 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+
+            th,
+            td {
+                padding: 10px 8px;
+                font-size: 14px;
+            }
+        }
+
+        th {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        tr:hover {
+            background-color: rgba(0, 113, 227, 0.05);
+        }
+
+        .highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .conclusion {
+            background-color: white;
+            text-align: center;
+        }
+
+        .conclusion p {
+            font-size: 20px;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        footer {
+            background-color: var(--dark-background);
+            color: var(--light-text);
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        footer p {
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #0071e3 0%, #00a2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 18px;
+            padding: 40px;
+            margin-top: 40px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-container h3 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .chart {
+            width: 100%;
+            height: 450px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 40px 0 20px;
+            overflow-x: auto;
+        }
+
+        .bar-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 80px;
+            min-width: 180px;
+        }
+
+        .bar {
+            width: 30px;
+            background: linear-gradient(to top, #0071e3, #00a2ff);
+            border-radius: 6px 6px 0 0;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .bar {
+                width: 40px;
+            }
+
+            .bar-group {
+                gap: 30px;
+                min-width: 200px;
+            }
+        }
+
+        .chart-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart {
+            position: relative;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: 500;
+            width: 40px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: 600;
+            background-color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 60px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .conclusion p {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
+
+            .section {
+                padding: 60px 0;
+            }
+
+            .chart-container,
+            .model-comparison {
+                padding: 20px;
+            }
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .eclipse-color {
+            background-color: #0071e3;
+        }
+
+        .mozilla-color {
+            background-color: #0091f8;
+        }
+
+        .thunderbird-color {
+            background-color: #00a2ff;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <a href="#" class="logo">Duplicate Bug Detection</a>
+            <div class="menu-toggle">☰</div>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#datasets">Datasets</a></li>
+                <li><a href="#approach">Approach</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#conclusion">Conclusion</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Binary Classification of Bug Reports in Issue Tracking Systems using Machine Learning</h1>
+            <h2>Machine Learning for Software Quality</h2>
+            <p>An intelligent approach to identify duplicate bug reports in issue tracking systems, improving developer
+                productivity and software quality.</p>
+        </div>
+    </section>
+
+    <section class="overview" id="overview">
+        <div class="container">
+            <h2 class="section-title">Project Overview</h2>
+            <p class="section-subtitle">Solving a critical challenge in software development</p>
+
+            <div class="overview-text">
+                <p>Duplicate bug report detection is a crucial task for any large-scale software project. It helps
+                    detect and triage redundant issues that occur during the software lifecycle, improving developer
+                    productivity and software quality.</p>
+
+                <p>From the large number of bug reports generated in code repositories, almost a third are found to
+                    be duplicates. This creates unnecessary load on developers and reduces their efficiency by
+                    wasting valuable time in deciphering similar queries.</p>
+
+                <p>Our research proposes a machine learning approach using binary classification to automatically
+                    identify duplicate bug reports. We've evaluated our approach using a master dataset of over
+                    122,000 bug reports from three real-world open source projects.</p>
+            </div>
+
+            <div class="process-flow-container" style="margin-top: 60px;">
+                <h3 class="section-subtitle" style="margin-bottom: 30px;">Process Flow</h3>
+                <div
+                    style="width: 100%; background-color: white; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+                    <img src="Process_new.jpeg" alt="Duplicate Bug Detection Process Flow"
+                        style="width: 100%; height: auto; border-radius: 8px;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="datasets" id="datasets">
+        <div class="container">
+            <h2 class="section-title">Datasets</h2>
+            <p class="section-subtitle">Real-world data from major open source projects</p>
+
+            <div class="dataset-cards">
+                <div class="dataset-card">
+                    <h3>Eclipse</h3>
+                    <p>Bug reports from the Eclipse IDE project</p>
+                    <div class="count">46,908</div>
+                    <p>duplicate and non-duplicate reports</p>
+                </div>
+
+                <div class="dataset-card">
+                    <h3>Mozilla Firefox</h3>
+                    <p>Bug reports from the Firefox browser</p>
+                    <div class="count">60,904</div>
+                    <p>duplicate and non-duplicate reports</p>
+                </div>
+
+                <div class="dataset-card">
+                    <h3>Mozilla Thunderbird</h3>
+                    <p>Bug reports from the Thunderbird email client</p>
+                    <div class="count">14,263</div>
+                    <p>duplicate and non-duplicate reports</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="approach" id="approach">
+        <div class="container">
+            <h2 class="section-title">Our Approach</h2>
+            <p class="section-subtitle">A systematic methodology for duplicate detection</p>
+
+            <div class="approach-steps">
+                <div class="approach-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Data Preparation</h3>
+                        <p>Datasets consisting of duplicate & non-duplicate bug report data are merged for the three
+                            datasets individually. Merged datasets from the three open-source projects are combined to
+                            form a larger dataset containing 122,075 data samples (bug report pairs).</p>
+                    </div>
+                </div>
+
+                <div class="approach-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Data Preprocessing</h3>
+                        <p>Bug title and description are concatenated for each of the bug report pairs. Stop words and
+                            punctuation marks are removed from the concatenated string to minimize the presence of words
+                            that don't add to the meaning of the bug reports.</p>
+                    </div>
+                </div>
+
+                <div class="approach-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Feature Extraction</h3>
+                        <p>The preprocessed text (combined title and description) is vectorized using TF-IDF (Term
+                            Frequency-Inverse Document Frequency). The vectorized dataset is then split into Training
+                            and Testing sets, maintaining appropriate class balance.</p>
+                    </div>
+                </div>
+
+                <div class="approach-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Model Training</h3>
+                        <p>Multiple machine learning classifiers are trained using the training set. We experimented
+                            with Logistic Regression (LR), Decision Trees (DT), and Random Forests (RF). Each model is
+                            trained independently to learn the underlying patterns of duplication in bug reports.</p>
+                    </div>
+                </div>
+
+                <div class="approach-step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Prediction and Evaluation</h3>
+                        <p>The trained models are evaluated on the testing set. A prediction matrix is generated, which
+                            contains predictions for each pair of bug reports. Based on these predictions, a final
+                            binary classification is made. Evaluation metrics such as Precision, Recall, Accuracy, and
+                            AUC Score are computed to assess model performance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="results" id="results">
+        <div class="container">
+            <h2 class="section-title">Results</h2>
+            <p class="section-subtitle">Performance metrics across different models and datasets</p>
+
+            <div class="results-content">
+                <div class="metrics-container">
+                    <div class="metric-card">
+                        <h3>Accuracy</h3>
+                        <div class="value">~80%</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <h3>Recall</h3>
+                        <div class="value">~62%</div>
+                    </div>
+
+                    <div class="metric-card">
+                        <h3>AUC Score</h3>
+                        <div class="value">~85%</div>
+                    </div>
+                </div>
+
+                <div class="model-comparison">
+                    <h3>Model Performance Comparison</h3>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Dataset</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>AUC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Logistic Regression</td>
+                                <td>Eclipse</td>
+                                <td>78.5%</td>
+                                <td>76.2%</td>
+                                <td>60.3%</td>
+                                <td>84.1%</td>
+                            </tr>
+                            <tr>
+                                <td>Logistic Regression</td>
+                                <td>Mozilla</td>
+                                <td>79.8%</td>
+                                <td>77.5%</td>
+                                <td>61.7%</td>
+                                <td>85.3%</td>
+                            </tr>
+                            <tr>
+                                <td>Logistic Regression</td>
+                                <td>Thunderbird</td>
+                                <td>80.2%</td>
+                                <td>78.1%</td>
+                                <td>62.4%</td>
+                                <td>85.8%</td>
+                            </tr>
+                            <tr>
+                                <td>Decision Tree</td>
+                                <td>Eclipse</td>
+                                <td>75.3%</td>
+                                <td>73.8%</td>
+                                <td>58.1%</td>
+                                <td>75.2%</td>
+                            </tr>
+                            <tr>
+                                <td>Decision Tree</td>
+                                <td>Mozilla</td>
+                                <td>76.1%</td>
+                                <td>74.2%</td>
+                                <td>59.3%</td>
+                                <td>76.0%</td>
+                            </tr>
+                            <tr>
+                                <td>Decision Tree</td>
+                                <td>Thunderbird</td>
+                                <td>76.8%</td>
+                                <td>75.0%</td>
+                                <td>59.8%</td>
+                                <td>76.7%</td>
+                            </tr>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>Eclipse</td>
+                                <td class="highlight">81.2%</td>
+                                <td class="highlight">79.5%</td>
+                                <td class="highlight">63.8%</td>
+                                <td class="highlight">86.4%</td>
+                            </tr>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>Mozilla</td>
+                                <td class="highlight">82.0%</td>
+                                <td class="highlight">80.1%</td>
+                                <td class="highlight">64.5%</td>
+                                <td class="highlight">87.2%</td>
+                            </tr>
+                            <tr>
+                                <td>Random Forest</td>
+                                <td>Thunderbird</td>
+                                <td class="highlight">82.5%</td>
+                                <td class="highlight">80.7%</td>
+                                <td class="highlight">65.1%</td>
+                                <td class="highlight">87.8%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Performance Metrics Visualization</h3>
+
+                    <div class="chart">
+                        <div class="bar-group">
+                            <div class="bar" style="height: 240px;">
+                                <div class="bar-value">80%</div>
+                                <div class="bar-label">LR</div>
+                            </div>
+                            <div class="bar" style="height: 230px;">
+                                <div class="bar-value">76%</div>
+                                <div class="bar-label">DT</div>
+                            </div>
+                            <div class="bar" style="height: 250px;">
+                                <div class="bar-value">82%</div>
+                                <div class="bar-label">RF</div>
+                            </div>
+                            <div class="bar-label" style="bottom: -60px; font-weight: 600;">Accuracy</div>
+                        </div>
+
+                        <div class="bar-group">
+                            <div class="bar" style="height: 230px;">
+                                <div class="bar-value">77%</div>
+                                <div class="bar-label">LR</div>
+                            </div>
+                            <div class="bar" style="height: 220px;">
+                                <div class="bar-value">74%</div>
+                                <div class="bar-label">DT</div>
+                            </div>
+                            <div class="bar" style="height: 240px;">
+                                <div class="bar-value">80%</div>
+                                <div class="bar-label">RF</div>
+                            </div>
+                            <div class="bar-label" style="bottom: -60px; font-weight: 600;">Precision</div>
+                        </div>
+
+                        <div class="bar-group">
+                            <div class="bar" style="height: 180px;">
+                                <div class="bar-value">62%</div>
+                                <div class="bar-label">LR</div>
+                            </div>
+                            <div class="bar" style="height: 170px;">
+                                <div class="bar-value">59%</div>
+                                <div class="bar-label">DT</div>
+                            </div>
+                            <div class="bar" style="height: 190px;">
+                                <div class="bar-value">64%</div>
+                                <div class="bar-label">RF</div>
+                            </div>
+                            <div class="bar-label" style="bottom: -60px; font-weight: 600;">Recall</div>
+                        </div>
+
+                        <div class="bar-group">
+                            <div class="bar" style="height: 250px;">
+                                <div class="bar-value">85%</div>
+                                <div class="bar-label">LR</div>
+                            </div>
+                            <div class="bar" style="height: 220px;">
+                                <div class="bar-value">76%</div>
+                                <div class="bar-label">DT</div>
+                            </div>
+                            <div class="bar" style="height: 260px;">
+                                <div class="bar-value">87%</div>
+                                <div class="bar-label">RF</div>
+                            </div>
+                            <div class="bar-label" style="bottom: -60px; font-weight: 600;">AUC</div>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color eclipse-color"></div>
+                            <span>Eclipse</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color mozilla-color"></div>
+                            <span>Mozilla</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color thunderbird-color"></div>
+                            <span>Thunderbird</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="conclusion" id="conclusion">
+        <div class="container">
+            <h2 class="section-title">Conclusion</h2>
+            <p class="section-subtitle">Advancing software quality through machine learning</p>
+
+            <div class="conclusion-content"
+                style="max-width: 900px; margin: 0 auto; padding: 30px; background-color: white; border-radius: 18px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); text-align: left;">
+                <p style="font-size: 20px; line-height: 1.6; margin-bottom: 30px;">Our research demonstrates that
+                    machine learning approaches can effectively identify duplicate bug
+                    reports, significantly improving the efficiency of software development processes.</p>
+
+                <p style="font-size: 20px; line-height: 1.6; margin-bottom: 30px;">The Random Forest classifier
+                    consistently outperformed other models across all datasets, achieving
+                    approximately 82% accuracy and 64% recall. These results represent a significant improvement over
+                    baseline methods.</p>
+
+                <h3 style="font-size: 24px; margin: 40px 0 20px;">Key Advantages</h3>
+
+                <div class="advantages" style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px;">
+                    <div class="advantage-item" style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div
+                            style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                            1</div>
+                        <p style="font-size: 18px; margin: 0;">Utilizes only <span class="gradient-text"
+                                style="font-weight: 600;">title and description</span> fields from bug reports—no need
+                            for metadata or stack traces</p>
+                    </div>
+
+                    <div class="advantage-item" style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div
+                            style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                            2</div>
+                        <p style="font-size: 18px; margin: 0;">Trained and evaluated on a <span class="gradient-text"
+                                style="font-weight: 600;">real-world large-scale dataset</span> of over 122,000 bug
+                            report pairs</p>
+                    </div>
+
+                    <div class="advantage-item" style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div
+                            style="background-color: var(--primary-color); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                            3</div>
+                        <p style="font-size: 18px; margin: 0;">Designed for <span class="gradient-text"
+                                style="font-weight: 600;">scalability</span> across diverse issue tracking systems and
+                            open-source repositories</p>
+                    </div>
+                </div>
+
+                <p style="font-size: 20px; line-height: 1.6; margin-bottom: 40px;">This work contributes to more
+                    efficient software development lifecycles and better resource utilization
+                    in large-scale software projects.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Binary Classification of Bug Reports in Issue Tracking Systems using Machine Learning</p>
+            <p>© 2025 Suvrat Jain</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+
+            menuToggle.addEventListener('click', function () {
+                navLinks.classList.toggle('active');
+            });
+
+            // Close menu when clicking on a link
+            const navItems = document.querySelectorAll('.nav-links a');
+            navItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    navLinks.classList.remove('active');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
